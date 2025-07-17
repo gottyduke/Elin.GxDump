@@ -6,7 +6,6 @@
         <LangVersion>preview</LangVersion>
         <ImplicitUsings>enable</ImplicitUsings>
         <Nullable>enable</Nullable>
-        <PublishAot>true</PublishAot>
         <InvariantGlobalization>true</InvariantGlobalization>
         <ApplicationIcon>p.ico</ApplicationIcon>
     </PropertyGroup>
@@ -21,7 +20,7 @@
 
     <ItemGroup>
         <PackageReference Include="ClosedXML" Version="0.105.0"/>
-        <PackageReference Include="Microsoft.Extensions.ObjectPool" Version="10.0.0-preview.5.25277.114" />
+        <PackageReference Include="Microsoft.Extensions.ObjectPool" Version="10.0.0-preview.5.25277.114"/>
     </ItemGroup>
 
 </Project>

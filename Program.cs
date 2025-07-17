@@ -41,10 +41,10 @@ worksheet.SheetView.FreezeRows(1);
 var rowCount = 3;
 foreach (var chara in charas) {
     var row = worksheet.Row(rowCount);
-    
+
     row.Cell(1).Value = chara.Id;
-    row.Cell(2).Value = chara.Name[0];
-    row.Cell(3).Value = chara.Name[1];
+    row.Cell(2).Value = chara.Name[1];
+    row.Cell(3).Value = chara.Name[0];
 
     foreach (var (flavor, (en, jp)) in DbParser.GxFlavors.Values) {
         if (chara.CharaTexts.TryGetValue(flavor, out var texts)) {
@@ -58,7 +58,7 @@ foreach (var chara in charas) {
 
 var totalColumns = headers.Length;
 worksheet.Rows(1, rowCount).AdjustToContents(1, totalColumns);
-worksheet.Columns(1, totalColumns).AdjustToContents(1, rowCount, minWidth: 5d, maxWidth: 50d);
+worksheet.Columns(1, totalColumns).AdjustToContents(1, rowCount, 5d, 50d);
 
 workbook.SaveAs(excelFile);
 
@@ -67,5 +67,7 @@ Console.WriteLine("move your finger and close this");
 Console.ReadKey();
 return;
 
-static string JoinTexts(List<string[]> texts, int index) => 
-    string.Join(Environment.NewLine, texts.Select(t => t[index]));
+static string JoinTexts(List<string[]> texts, int index)
+{
+    return string.Join(Environment.NewLine, texts.Select(t => t[index]));
+}

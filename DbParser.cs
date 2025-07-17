@@ -14,14 +14,14 @@ internal partial class DbParser
         ["FLAVOR_KILL"] = ("kill", (8, 13)),
     };
 
+    private static readonly ObjectPool<StringBuilder> _builders = new DefaultObjectPoolProvider().CreateStringBuilderPool();
+
     internal List<CharaData> Parse(string dbData)
     {
         return SplitCreatureBlocks(dbData)
             .Select(kv => ParseCreatureBlock(kv.Key, kv.Value))
             .ToList();
     }
-
-    private static readonly ObjectPool<StringBuilder> _builders = new DefaultObjectPoolProvider().CreateStringBuilderPool();
 
     private static Dictionary<string, string> SplitCreatureBlocks(string dbData)
     {
@@ -63,6 +63,7 @@ internal partial class DbParser
                     .FirstOrDefault(t => t.Count > 0)?[0];
 
                 if (validName is not null) {
+                    validName[1] = validName[1].Trim('\"');
                     chara.Name = validName;
                 }
             }
@@ -119,6 +120,7 @@ internal partial class DbParser
     {
         input = input.Trim();
         input = OniiRegex().Replace(input, "#onii");
+        input = SyujinRegex().Replace(input, "#brother");
         input = ScriptLhsRegex().Replace(input, "");
 
         List<string> langCalls = [];
@@ -178,14 +180,14 @@ internal partial class DbParser
             var jp = ProcessExpression(jpExp);
 
             enExp = ConvertTalkRegex().Replace(enExp, "");
-            enExp = enExp.Trim();
-            if (enExp.EndsWith(')')) {
-                enExp = enExp[..^1].Trim();
-            }
+            enExp = enExp.Trim(' ', '(', ')');
 
             var en = ProcessExpression(enExp);
+            if (!ValidEnRegex().IsMatch(en)) {
+                en = $"\"{en}\"";
+            }
 
-            result.Add([jp.Trim('\"'), en.Trim('\"')]);
+            result.Add([jp, en]);
         }
 
         return result;
@@ -199,11 +201,15 @@ internal partial class DbParser
 
             foreach (var part in parts) {
                 var segment = part.Trim();
-                if (segment is ['\"', _, '\"']) {
-                    segment = segment.Substring(1, segment.Length - 2);
-                }
-
                 sb.Append(segment);
+            }
+
+            while (sb.ToString().Contains("\\\"")) {
+                sb.Replace("\\\"", "\"");
+            }
+
+            while (sb.ToString().Contains('"')) {
+                sb.Replace("\"", "");
             }
 
             return sb.ToString();
@@ -220,6 +226,7 @@ internal partial class DbParser
                 count++;
             }
         }
+
         return count;
     }
 
@@ -232,9 +239,15 @@ internal partial class DbParser
     [GeneratedRegex(@"_onii\(cdata\(CDATA_SEX,\s*CHARA_PLAYER\)\)")]
     private static partial Regex OniiRegex();
 
+    [GeneratedRegex(@"_syujin\(cdata\(CDATA_SEX,\s*CHARA_PLAYER\)\)")]
+    private static partial Regex SyujinRegex();
+
     [GeneratedRegex(@"^\s*txt\s*|^\s*cdatan\(CDATAN_NAME, rc\) = ", RegexOptions.Multiline)]
     private static partial Regex ScriptLhsRegex();
 
     [GeneratedRegex(@"^cnvtalk\s*\(")]
     private static partial Regex ConvertTalkRegex();
+
+    [GeneratedRegex(@"^[^a-zA-Z]")]
+    private static partial Regex ValidEnRegex();
 }
